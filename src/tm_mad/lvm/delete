@@ -49,24 +49,26 @@ DST_HOST=`arg_host $DST`
 # getting detailed volume informations
 #-------------------------------------------------------------------------------
 
-DRIVER_PATH=$(dirname $0)
+if [ `is_disk $DST_PATH` -eq 1 ]; then
 
-DISK_ID=$(echo "$DST_PATH" | $AWK -F. '{print $NF}')
+	DRIVER_PATH=$(dirname $0)
 
-XPATH="${DRIVER_PATH}/../../datastore/xpath.rb --stdin"
+	DISK_ID=$(echo "$DST_PATH" | $AWK -F. '{print $NF}')
 
-unset i XPATH_ELEMENTS
+	XPATH="${DRIVER_PATH}/../../datastore/xpath.rb --stdin"
 
-#
-# parse vm volume details from "onevm" xml output
-#
+	unset i XPATH_ELEMENTS
 
-while IFS= read -r -d '' element; do
-    XPATH_ELEMENTS[i++]="$element"
-done < <(onevm show -x $VM_ID| $XPATH \
-                    /VM/TEMPLATE/DISK[DISK_ID=$DISK_ID]/PERSISTENT)
+	#
+	# parse vm volume details from "onevm" xml output
+	#
 
-PERSISTENT="${XPATH_ELEMENTS[0]}"
+	while IFS= read -r -d '' element; do
+	    XPATH_ELEMENTS[i++]="$element"
+	done < <(onevm show -x $VM_ID| $XPATH \
+			    /VM/TEMPLATE/DISK[DISK_ID=$DISK_ID]/PERSISTENT)
+
+	PERSISTENT="${XPATH_ELEMENTS[0]}"
 
 #-------------------------------------------------------------------------------
 
@@ -92,7 +94,6 @@ DELETE_CMD=$(cat <<EOF
 EOF
 )
 
-if [ `is_disk $DST_PATH` -eq 1 ]; then
     # Disk
     ssh_exec_and_log "$DST_HOST" "$DELETE_CMD" \
         "Error deleting $DST_PATH"
