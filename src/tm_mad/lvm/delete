@@ -36,6 +36,28 @@ fi
 # Return if deleting a disk, we will delete them when removing the
 # remote_system_ds directory for the VM (remotely)
 #-------------------------------------------------------------------------------
+
+XPATH="${DRIVER_PATH}/../../datastore/xpath.rb --stdin"
+
+unset i XPATH_ELEMENTS
+
+#
+# parse vm volume details from "onevm" xml output
+#
+
+while IFS= read -r -d '' element; do
+    XPATH_ELEMENTS[i++]="$element"
+done < <(onevm show -x $VMID| $XPATH \
+                    /VM/TEMPLATE/DISK[DISK_ID=$DISK_ID]/PERSISTENT)
+
+PERSISTENT="${XPATH_ELEMENTS[0]}"
+
+#-------------------------------------------------------------------------------
+# Set dst path and dir
+#-------------------------------------------------------------------------------
+SRC_PATH=`arg_path $SRC`
+SRC_HOST=`arg_host $SRC`
+
 DST_PATH=`arg_path $DST`
 DST_HOST=`arg_host $DST`
 
@@ -47,7 +69,10 @@ DELETE_CMD=$(cat <<EOF
     DISK_ID=$(echo \$LV|cut -d- -f5)
 
     if [ -n "\$VM" -a -n "\$DISK_ID" ]; then
-        $SUDO $LVREMOVE -f \$DEV
+        if [ -n "$PERSISTENT" ]
+        then
+            $SUDO $LVREMOVE -f \$DEV
+        fi
     fi
 EOF
 )

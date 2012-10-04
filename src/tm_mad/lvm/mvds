@@ -36,6 +36,25 @@ fi
 . $TMCOMMON
 
 #-------------------------------------------------------------------------------
+# Get image information
+#-------------------------------------------------------------------------------
+
+XPATH="${DRIVER_PATH}/../../datastore/xpath.rb --stdin"
+
+unset i XPATH_ELEMENTS
+
+#
+# parse vm volume details from "onevm" xml output
+#
+
+while IFS= read -r -d '' element; do
+    XPATH_ELEMENTS[i++]="$element"
+done < <(onevm show -x $VMID| $XPATH \
+                    /VM/TEMPLATE/DISK[DISK_ID=$DISK_ID]/PERSISTENT)
+
+PERSISTENT="${XPATH_ELEMENTS[0]}"
+
+#-------------------------------------------------------------------------------
 # Set dst path and dir
 #-------------------------------------------------------------------------------
 SRC_PATH=`arg_path $SRC`
@@ -49,6 +68,9 @@ LV_NAME=$(echo $DST_PATH|cut -d. -f2)
 
 TARGET_DEV=/dev/$VG_NAME/$LV_NAME
 
+
+if [ -n "$PERSISTENT" ]
+then
 DUMP_CMD=$(cat <<EOF
     DEV=\$(readlink $SRC_PATH)
     SOURCE_DEV=\$(echo \$DEV|sed 's/-[0-9]*-[0-9]*$//')
@@ -58,6 +80,7 @@ DUMP_CMD=$(cat <<EOF
     $SUDO $LVREMOVE -f \$DEV
 EOF
 )
+fi
 
 #-------------------------------------------------------------------------------
 # Move the image back to the datastore
