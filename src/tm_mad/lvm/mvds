@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -x
+exec 2>/tmp/err-$$.txt
+
 # -------------------------------------------------------------------------- #
 # Copyright 2002-2012, OpenNebula Project Leads (OpenNebula.org)             #
 #                                                                            #
@@ -39,6 +42,10 @@ fi
 # Get image information
 #-------------------------------------------------------------------------------
 
+DRIVER_PATH=$(dirname $0)
+
+DISK_ID=$(echo $SRC|awk -F. '{print $NF}')
+
 XPATH="${DRIVER_PATH}/../../datastore/xpath.rb --stdin"
 
 unset i XPATH_ELEMENTS
@@ -49,7 +56,7 @@ unset i XPATH_ELEMENTS
 
 while IFS= read -r -d '' element; do
     XPATH_ELEMENTS[i++]="$element"
-done < <(onevm show -x $VMID| $XPATH \
+done < <(onevm show -x $VM_ID| $XPATH \
                     /VM/TEMPLATE/DISK[DISK_ID=$DISK_ID]/PERSISTENT)
 
 PERSISTENT="${XPATH_ELEMENTS[0]}"
@@ -72,6 +79,9 @@ TARGET_DEV=/dev/$VG_NAME/$LV_NAME
 if [ -n "$PERSISTENT" ]
 then
 DUMP_CMD=$(cat <<EOF
+    exec 2>/tmp/err.txt
+    set -x
+    echo \$0
     DEV=\$(readlink $SRC_PATH)
     SOURCE_DEV=\$(echo \$DEV|sed 's/-[0-9]*-[0-9]*$//')
     SIZE=\$($SUDO $LVS \$SOURCE_DEV --noheadings|awk '{print \$4}'|tr -d m)

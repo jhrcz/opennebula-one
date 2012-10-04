@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -x
+exec 2>/tmp/err-$$.txt
+
 # -------------------------------------------------------------------------- #
 # Copyright 2002-2012, OpenNebula Project Leads (OpenNebula.org)             #
 #                                                                            #
@@ -33,9 +36,22 @@ fi
 . $TMCOMMON
 
 #-------------------------------------------------------------------------------
-# Return if deleting a disk, we will delete them when removing the
-# remote_system_ds directory for the VM (remotely)
+# Set dst path and dir
 #-------------------------------------------------------------------------------
+SRC_PATH=`arg_path $SRC`
+SRC_HOST=`arg_host $SRC`
+
+DST_PATH=`arg_path $DST`
+DST_HOST=`arg_host $DST`
+
+
+#-------------------------------------------------------------------------------
+# getting detailed volume informations
+#-------------------------------------------------------------------------------
+
+DRIVER_PATH=$(dirname $0)
+
+DISK_ID=$(echo "$DST_PATH" | $AWK -F. '{print $NF}')
 
 XPATH="${DRIVER_PATH}/../../datastore/xpath.rb --stdin"
 
@@ -47,33 +63,32 @@ unset i XPATH_ELEMENTS
 
 while IFS= read -r -d '' element; do
     XPATH_ELEMENTS[i++]="$element"
-done < <(onevm show -x $VMID| $XPATH \
+done < <(onevm show -x $VM_ID| $XPATH \
                     /VM/TEMPLATE/DISK[DISK_ID=$DISK_ID]/PERSISTENT)
 
 PERSISTENT="${XPATH_ELEMENTS[0]}"
 
 #-------------------------------------------------------------------------------
-# Set dst path and dir
-#-------------------------------------------------------------------------------
-SRC_PATH=`arg_path $SRC`
-SRC_HOST=`arg_host $SRC`
-
-DST_PATH=`arg_path $DST`
-DST_HOST=`arg_host $DST`
 
 # Delete the device if it's a clone (LVM snapshot)
 DELETE_CMD=$(cat <<EOF
+    exec 2>/tmp/err-$$.txt
+    set -x
+    echo \$0
     DEV=\$(readlink $DST_PATH)
     LV=\$(basename \$DEV)
-    VM=$(echo \$LV|cut -d- -f4)
-    DISK_ID=$(echo \$LV|cut -d- -f5)
 
-    if [ -n "\$VM" -a -n "\$DISK_ID" ]; then
-        if [ -n "$PERSISTENT" ]
+    # we remove volume only if lv is snapshot - named "lv-one-{PARENTVOLID}-{VMID}-{DISKID}"
+    VM=\$(echo \$LV|cut -d- -f4)
+    DISK_ID=\$(echo \$LV|cut -d- -f5)
+    #if [ -n "\$VM" -a -n "\$DISK_ID" ]; then
+
+        # persistent volume should not be removed
+        if [ "$PERSISTENT" != "YES" ]
         then
             $SUDO $LVREMOVE -f \$DEV
         fi
-    fi
+    #fi
 EOF
 )
 
