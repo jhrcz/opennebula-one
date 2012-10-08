@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# for debugging purposes
+#set -x
+#exec 2>/tmp/err-$$.txt
+
 # -------------------------------------------------------------------------- #
 # Copyright 2002-2012, OpenNebula Project Leads (OpenNebula.org)             #
 #                                                                            #
@@ -43,8 +47,29 @@ DST_HOST=`arg_host $DST`
 DELETE_CMD=$(cat <<EOF
     DEV=\$(readlink $DST_PATH)
     LV=\$(basename \$DEV)
-    VM=$(echo \$LV|cut -d- -f4)
-    DISK_ID=$(echo \$LV|cut -d- -f5)
+
+    # volume naming schema:
+    #   lv-one-{IMGID} 			... persistent volume
+    #   lv-one-{PARENTIMGID-{VMID}-{DISKID} ... nonpersistent volume cloned from persistnent at vm creation
+    #   lv-one-{VMID}-{DISKID} 		... nonpersistnet volume initialized at vm creation
+
+    LV_NAME_ELEMENT_3="\$(echo \$LV|cut -d- -f3)"
+    LV_NAME_ELEMENT_4="\$(echo \$LV|cut -d- -f4)"
+    LV_NAME_ELEMENT_5="\$(echo \$LV|cut -d- -f5)"
+
+    # lv-one-{PARENTIMGID-{VMID}-{DISKID}
+    if [ -n "\$LV_NAME_ELEMENT_4" -a -n "\$LV_NAME_ELEMENT_5" ]
+    then
+        VM="\$LV_NAME_ELEMENT_4"
+        DISK_ID="\$LV_NAME_ELEMENT_5"
+    fi
+
+    # lv-one-{VMID}-{DISKID} , reusing values from previous parsing
+    if [ -z "\$LV_NAME_ELEMENT_5" -a -n "\$LV_NAME_ELEMENT_3" -a -n "\$LV_NAME_ELEMENT_4" ]
+    then
+        VM="\$LV_NAME_ELEMENT_3"
+        DISK_ID="\$LV_NAME_ELEMENT_4"
+    fi
 
     if [ -n "\$VM" -a -n "\$DISK_ID" ]; then
         $SUDO $LVREMOVE -f \$DEV
