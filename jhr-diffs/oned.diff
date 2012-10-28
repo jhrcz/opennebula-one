@@ -1,0 +1,8 @@
+37a38,44
+>     echo $"Archiving previous OpenNebula log... "
+>     LOGFILE=/var/log/one/oned.log
+>     if [ -s "$LOGFILE" ]
+>     then
+>         logfile_timestamp=$(stat -c %Y "$LOGFILE")
+> 	mv "$LOGFILE" "$LOGFILE"."$logfile_timestamp"
+>     fi

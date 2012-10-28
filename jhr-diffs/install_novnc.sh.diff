@@ -1,0 +1,40 @@
+1a2
+> set -x
+55c56,70
+< curl -O -# -L https://raw.github.com/kanaka/websockify/master/websockify
+---
+> ##curl -O -# -L https://raw.github.com/kanaka/websockify/master/websockify
+> #if [ $? -ne 0 ]; then
+> #  echo "\nError downloading websockify"
+> #  exit 1
+> #fi
+> #curl -O -# -L https://raw.github.com/kanaka/websockify/master/websocket.py
+> #if [ $? -ne 0 ]; then
+> #  echo "\nError downloading websocket.py"
+> #  exit 1
+> #fi
+> 
+> echo "Downloading websockify latest version..."
+> mkdir -p $NOVNC_TMP
+> cd $NOVNC_TMP
+> curl -O -# -L http://github.com/kanaka/websockify/tarball/master
+60c75,79
+< curl -O -# -L https://raw.github.com/kanaka/websockify/master/websocket.py
+---
+> 
+> echo "Extracting files to temporary folder..."
+> tar=`ls -rt $NOVNC_TMP|tail -n1`
+> tar -mxzf $NOVNC_TMP/$tar
+> 
+62c81
+<   echo "\nError downloading websocket.py"
+---
+>   echo "Error untaring websockify"
+65a85,86
+> mv $NOVNC_TMP/*-websockify-*/* $ONE_SHARE/websockify/
+> 
+71c92
+< echo "Installation successful"
+\ No newline at end of file
+---
+> echo "Installation successful"

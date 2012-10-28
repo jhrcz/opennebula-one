@@ -1,0 +1,8 @@
+103c103
+<             return used+'&nbsp;'+unit+'&nbsp;/&nbsp'+max+'&nbsp;'+unit;
+---
+>             return used+'&nbsp;'+unit+'&nbsp;/&nbsp;'+max+'&nbsp;'+unit;
+105c105
+<         return used + '&nbsp;/&nbsp'+ max
+---
+>         return used + '&nbsp;/&nbsp;'+ max
