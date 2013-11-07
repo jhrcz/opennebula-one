@@ -1088,6 +1088,9 @@ DATASTORE_DRIVER_ISCSI_SCRIPTS="src/datastore_mad/remotes/iscsi/cp \
                          src/datastore_mad/remotes/iscsi/iscsi.conf"
 
 DATASTORE_DRIVER_LVM_SCRIPTS="src/datastore_mad/remotes/lvm/cp \
+                         src/datastore_mad/remotes/lvm/context \
+                         src/datastore_mad/remotes/lvm/mkimage \
+                         src/datastore_mad/remotes/lvm/mkswap \
                          src/datastore_mad/remotes/lvm/mkfs \
                          src/datastore_mad/remotes/lvm/stat \
                          src/datastore_mad/remotes/lvm/rm \
