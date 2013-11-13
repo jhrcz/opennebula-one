@@ -28,6 +28,17 @@ cat > $domain
 # and not yet upgdared hypervizor servers
 sed -i -e "s|<type arch='x86_64'>hvm</type>|<type arch='x86_64' machine='rhel6.2.0'>hvm</type>|" $domain
 
+# set cgroups cpu shares to number of vcups
+# to be more restrict cpu usage
+if grep -q cputune $domain
+then
+	:
+else
+	vcpu="$(grep '<vcpu>' $domain | cut -d '>' -f 2 | cut -d '<' -f 1 )"
+	shares="$((1024*$vcpu))"
+	sed -ie 's,</domain>,<cputune><shares>'"$shares"'</shares></cputune></domain>,' $domain
+fi
+
 data=`virsh --connect $LIBVIRT_URI create $domain`
 
 if [ "x$?" = "x0" ]; then
