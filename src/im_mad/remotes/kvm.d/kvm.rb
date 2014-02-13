@@ -68,7 +68,7 @@ top_text.split(/\n/).each{|line|
     end
 }
 
-$total_memory = `free -k|grep "Mem:" | awk '{print $2}'`
+#$total_memory = `free -k|grep "Mem:" | awk '{print $2}'`
 tmp=`free -k|grep "buffers\/cache"|awk '{print $3 " " $4}'`.split
 
 $used_memory=tmp[0]
