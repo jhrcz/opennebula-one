@@ -17,6 +17,7 @@
 #--------------------------------------------------------------------------- #
 
 cpu_overcommit_multiplier = 4
+mem_overcommit_multiplier = 1
 
 def print_info(name, value)
     value = "0" if value.nil? or value.to_s.strip.empty?
@@ -37,7 +38,7 @@ nodeinfo_text.split(/\n/).each{|line|
     elsif  line.match('^CPU frequency')
         $cpu_speed   = line.split(":")[1].strip.split(" ")[0]
     elsif  line.match('^Memory size')
-        $total_memory = line.split(":")[1].strip.split(" ")[0]
+	$total_memory = line.split(":")[1].strip.split(" ")[0].strip.to_i * mem_overcommit_multiplier.to_i
     end
 }
 
