@@ -57,7 +57,7 @@ DUMP_CMD=$(cat <<EOF
     SIZE=\$($SUDO $LVS \$DEV --noheadings --nosuffix --units m -o lv_size \
             | tr -d ' ')
     $SUDO $LVCREATE -L\${SIZE}M ${VG_NAME} -n ${LV_NAME}
-    $SUDO $DD if="\${DEV}" of="${TARGET_DEV}"
+    $SUDO $DD if="\${DEV}" of="${TARGET_DEV} bs=64k"
 EOF
 )
 
